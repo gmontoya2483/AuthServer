@@ -39,6 +39,7 @@ const crearUsuario = async (req=request, res=response) => {
             ok: true,
             uid: dbUser.id,
             name,
+            email,
             token
 
         });
@@ -86,6 +87,7 @@ const loginUsuario = async (req= request, res=response) => {
             ok: true,
             uid: dbUser.id,
             name: dbUser.name,
+            email: dbUser.email,
             token
         });
 
@@ -103,15 +105,25 @@ const loginUsuario = async (req= request, res=response) => {
 
 const revalidarToken = async (req=request, res=response) => {
 
-    const { uid, name } = req;
+    const { uid } = req;
+
+    // Leer DB para obtener el email
+    const dbUser = await Usuario.findById(uid);
+    if (! dbUser ) {
+        return res.status(400).json({
+            ok: false,
+            msg: 'Problemas al validar el Token, usuario no encontrado'
+        });
+    }
 
     // Generar el JWT
-    const token = await generarJWT( uid, name);
+    const token = await generarJWT( uid, dbUser.name);
 
     return res.json({
         ok: true,
         uid,
-        name,
+        name: dbUser.name,
+        email: dbUser.email,
         token
     })
 }
